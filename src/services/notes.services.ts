@@ -1,23 +1,28 @@
+import { PrismaClient } from "@prisma/client";
+import { CreateNote } from "../models/note.interface";
+
+const Prisma = new PrismaClient();
+
 export const notesServices = {
   getNotes: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(["Note 1", "Note 2", "Note 3"]);
-      }, 200);
-    });
+    const allNotes = await Prisma.note.findMany();
+    return allNotes;
   },
   getNote: async (id: string) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve("Note " + id);
-      }, 200);
-    });
+    const note = await Prisma.note.findUnique({ where: { id } });
+    if (!note)
+      throw new Error("Note not found");
+    return note;
   },
-  createNote: async (note: any) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(note);
-      }, 200);
+  createNote: async (note: CreateNote) => {
+    const createdNote = await Prisma.note.create({
+      data: {
+        userId: note.userId,
+        title: note.title,
+        content: note.content,
+        images: note.images,
+      },
     });
+    return createdNote;
   },
 };
