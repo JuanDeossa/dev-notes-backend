@@ -5,7 +5,7 @@ const { PORT } = envs;
 
 (async () => {
   server.use("/notes", notesRouter);
-  server.use("/users", usersRouter);
+  server.use("/", usersRouter);
 
   server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
