@@ -46,14 +46,4 @@ export const usersController = {
       console.error(error);
     }
   },
-  createSession: async (req_: Request, res: Response) => {
-    const body: CreateUser = req_.body;
-    // const { email, password } = body;
-    try {
-      const isLogged = await usersServices.createSession(body);
-      res.status(200).json(isLogged);
-    } catch (error) {
-      console.error(error);
-    }
-  },
 };

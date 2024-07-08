@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { CreateUser, LoginUser } from "../models/user.interface";
 import { compare, hash } from "bcrypt";
+import { sign } from "jsonwebtoken";
+import { envs } from "../config/envs";
 
 const Prisma = new PrismaClient();
 
@@ -37,6 +39,8 @@ export const usersServices = {
   login: async (note: LoginUser) => {
     const { email, password } = note;
 
+    const expirationTime = "1h";
+
     const userFound = await Prisma.user.findUnique({ where: { email } });
     if (!userFound) throw new Error("Error with credentials");
 
@@ -44,26 +48,27 @@ export const usersServices = {
 
     if (!verifyPassword) throw new Error("Error with credentials");
 
-    console.log(userFound);
-    console.log(verifyPassword);
-  },
-  createSession: async (note: CreateUser) => {
-    const { email, password } = note;
+    const { id: userId, email: userEmail } = userFound;
 
-    const newPassword = await hash(password, 10);
+    const token = sign({ userId, userEmail }, envs.JWT_SECRET, {
+      expiresIn: expirationTime,
+    });
 
-    const createdUser = await Prisma.user.create({
+    const createdSession = await Prisma.session.create({
       data: {
-        email,
-        password: newPassword,
+        userId,
+        token,
       },
     });
 
-    if (!createdUser) throw new Error("User not created");
+    if (!createdSession) throw new Error("Error with credentials");
 
     return {
-      id: createdUser.id,
-      email: createdUser.email,
+      sessionId: createdSession.id,
+      userId,
+      userEmail,
+      token,
+      expirationTime,
     };
   },
 };
